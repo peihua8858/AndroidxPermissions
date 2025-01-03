@@ -24,6 +24,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.lifecycle.lifecycleScope
 import com.fz.toast.showToast
+import com.peihua8858.permissions.core.requestPermission
 import com.peihua8858.permissions.core.requestPermissions
 import com.peihua8858.permissions.theme.ComposeDemoTheme
 import kotlinx.coroutines.launch
@@ -60,7 +61,7 @@ class MainActivity : ComponentActivity() {
                                 .padding(innerPadding)
                                 .clickable {
                                     lifecycleScope.launch {
-                                        requestPermissions(Manifest.permission.READ_MEDIA_IMAGES,Manifest.permission.CAMERA) {
+                                        requestPermission(Manifest.permission.SYSTEM_ALERT_WINDOW) {
                                             onGranted {
                                                 // 权限已授予
                                                 Log.d("MainActivity>>>", "权限已授予")

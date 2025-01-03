@@ -35,3 +35,6 @@ android {
 dependencies {
     implementation("androidx.activity:activity:1.3.0")
 }
+setGroup("com.github.peihua8858")
+setVersion("1.0.0")
+apply(from = "push_maven.gradle")

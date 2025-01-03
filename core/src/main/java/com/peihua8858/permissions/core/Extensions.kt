@@ -16,10 +16,10 @@ import kotlin.contracts.contract
 @MainThread
 inline fun ComponentActivity.requestPermission(
     permission: String,
-    requestBlock: PermissionCallbacksDSL.() -> Unit,
+    requestBlock: PermissionCallbacks.() -> Unit,
 ) {
     val permissionCallbacks: PermissionCallbacks =
-        PermissionCallbacksDSL().apply { requestBlock() }
+        PermissionCallbacks().apply { requestBlock() }
     _requestPermission(
         permissionCallbacks,
         permission
@@ -53,26 +53,16 @@ fun onPermissionResult(result: PermissionResult, callback: PermissionCallbacks) 
         is PermissionResult.PermissionDenied -> {
             callback.onDenied(result.deniedPermissions)
         }
-
-        is PermissionResult.ShowRational -> {
-            callback.onShowRationale(
-                result.rationalPermissions,
-            )
-        }
-
-        is PermissionResult.PermissionDeniedPermanently -> {
-            callback.onNeverAskAgain(result.permanentlyDeniedPermissions)
-        }
     }
 }
 
 @MainThread
 inline fun ComponentActivity.requestPermissions(
     vararg permissions: String,
-    requestBlock: PermissionCallbacksDSL.() -> Unit,
+    requestBlock: PermissionCallbacks.() -> Unit,
 ) {
     val permissionCallbacks: PermissionCallbacks =
-        PermissionCallbacksDSL().apply { requestBlock() }
+        PermissionCallbacks().apply { requestBlock() }
     _requestPermissions(
         permissionCallbacks,
         permissions.toList()
@@ -195,6 +185,7 @@ internal fun ComponentActivity.rememberMutablePermissionsState(
         // Remember launcher and assign it to the permissionState
         val launcher = launcherForActivityResult(ActivityResultContracts.RequestPermission()) {
             permissionState.refreshPermissionStatus()
+            permissionState.launcher?.unregister()
             permissionState.launcher = null
         }
         permissionState.launcher = launcher
