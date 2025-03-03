@@ -58,8 +58,8 @@ publishServicePublicationToSnapshotRepository.mustRunAfter 'assemble'
 task publishSnapshotToMaven(dependsOn: [
         'deleteBuild',// 0
         'deleteLocalFile',// 1
-        'assemble',// 1
-        'publishServicePublicationToSnapshotRepository' //2
+        'assemble',// 2
+        'publishServicePublicationToSnapshotRepository' //3
 ], group: 'publish-group') {
     println "publishSnapshotToMaven()"
 }
@@ -67,8 +67,8 @@ publishServicePublicationToReleaseRepository.mustRunAfter 'assemble'
 task publishReleaseToMaven(dependsOn: [
         'deleteBuild',// 0
         'deleteLocalFile',// 1
-        'assemble',// 1
-        'publishServicePublicationToReleaseRepository' //2
+        'assemble',// 2
+        'publishServicePublicationToReleaseRepository' //3
 ], group: 'publish-group') {
     println "publishReleaseToMaven()"
 }
