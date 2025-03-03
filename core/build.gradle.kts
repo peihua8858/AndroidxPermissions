@@ -35,6 +35,6 @@ android {
 dependencies {
     implementation("androidx.activity:activity:1.3.0")
 }
-setGroup("com.github.peihua8858")
-setVersion("1.0.0")
+setGroup(providers.gradleProperty("premission.group").get())
+setVersion(providers.gradleProperty("premission.version").get())
 apply(from = "push_maven.gradle")

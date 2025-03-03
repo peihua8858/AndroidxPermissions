@@ -62,5 +62,5 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
-    implementation ("com.google.accompanist:accompanist-permissions:0.37.0")
+    implementation ("com.google.accompanist:accompanist-permissions:0.37.2")
 }

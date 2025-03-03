@@ -7,14 +7,13 @@ def mavenUserName = "l1111"
 def mavenPwd = "l123456"
 def localFile="${rootDir}/plugin_libs"
 def sdkVersionName = isRelease ? version : version + "-SNAPSHOT"
-println "group: ${group}"
 publishing {
     publications {
         service(MavenPublication) {
             afterEvaluate {
                 from components.findByName('release')
                 groupId = group
-                artifactId = 'permissions-fragment'
+                artifactId = 'permissions-compose'
                 version = sdkVersionName
             }
         }
@@ -50,8 +49,8 @@ task deleteBuild(type: Delete) {
 }
 task deleteLocalFile(type: Delete) {
     println "deleteLocalFile()"
-//    def buildDir = localFile
-//    delete buildDir
+    def buildDir = localFile
+    delete buildDir
 }
 
 assemble.mustRunAfter 'deleteBuild'

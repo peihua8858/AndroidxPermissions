@@ -23,3 +23,4 @@ rootProject.name = "Permissions"
 include(":app")
 include(":core")
 include(":fragment")
+include(":compose")

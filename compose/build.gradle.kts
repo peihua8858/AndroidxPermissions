@@ -4,16 +4,20 @@ plugins {
 }
 
 android {
-    namespace = "com.peihua8858.core"
+    namespace = "com.peihua8858.permission.compose"
     compileSdk = 34
 
     defaultConfig {
         minSdk = 24
 
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
     }
-
+    buildFeatures {
+        compose = true
+    }
+    composeOptions {
+        kotlinCompilerExtensionVersion = "1.5.1"
+    }
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -34,7 +38,8 @@ android {
 
 dependencies {
     implementation(project(":core"))
-    implementation("androidx.fragment:fragment:1.3.0")
+    implementation(libs.androidx.activity.compose)
+    implementation(platform(libs.androidx.compose.bom))
 }
 setGroup(providers.gradleProperty("premission.group").get())
 setVersion(providers.gradleProperty("premission.version").get())

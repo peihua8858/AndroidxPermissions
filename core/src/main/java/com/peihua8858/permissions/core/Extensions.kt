@@ -6,12 +6,14 @@ import android.content.pm.PackageManager
 import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.MainThread
+import androidx.annotation.RestrictTo
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
+import androidx.annotation.RestrictTo.Scope.LIBRARY_GROUP_PREFIX
 
 @MainThread
 inline fun ComponentActivity.requestPermission(
@@ -23,78 +25,74 @@ inline fun ComponentActivity.requestPermission(
     _requestPermission(
         permissionCallbacks,
         permission
-    )
+    ).launchPermissionRequest()
 }
-
-fun ComponentActivity._requestPermission(
+@RestrictTo(LIBRARY_GROUP_PREFIX)
+@MainThread
+ fun ComponentActivity._requestPermission(
     callback: PermissionCallbacks,
     permission: String,
-) {
-    val granted = checkPermission(permission)
-    if (granted) {
-        onPermissionResult(PermissionResult.PermissionGranted(), callback)
-    } else {
-        requestMutablePermissionState(permission) {
-            val result =
-                if (it) PermissionResult.PermissionGranted() else PermissionResult.PermissionDenied(
-                    listOf(permission)
-                )
-            onPermissionResult(result, callback)
+):MutablePermissionState {
+   return requestMutablePermissionState(permission) {
+        onPermissionResult(it, callback)
+    }
+}
+
+internal fun onPermissionResult(permissionsState: PermissionState, callback: PermissionCallbacks) {
+    val permissionStatus = permissionsState.status
+    when {
+        permissionStatus == PermissionStatus.Granted ->
+            callback.onGranted(permissionsState)
+
+        permissionStatus.shouldShowRationale -> {
+            callback.onShowRationale(permissionsState)
+        }
+
+        else -> {
+            callback.onDenied(permissionsState)
         }
     }
 }
 
-fun onPermissionResult(result: PermissionResult, callback: PermissionCallbacks) {
-    when (result) {
-        is PermissionResult.PermissionGranted -> {
-            callback.onGranted()
+internal fun onPermissionResult(
+    permissionsState: MultiplePermissionsState,
+    callback: MultiplePermissionCallbacks
+) {
+    when {
+        permissionsState.allPermissionsGranted ->
+            callback.onGranted(permissionsState.permissions)
+
+        permissionsState.shouldShowRationale -> {
+            callback.onShowRationale(permissionsState.permissions)
         }
 
-        is PermissionResult.PermissionDenied -> {
-            callback.onDenied(result.deniedPermissions)
+        else -> {
+            callback.onDenied(permissionsState.permissions)
         }
     }
 }
 
 @MainThread
-inline fun ComponentActivity.requestPermissions(
+fun ComponentActivity.requestPermissions(
     vararg permissions: String,
-    requestBlock: PermissionCallbacks.() -> Unit,
+    requestBlock: MultiplePermissionCallbacks.() -> Unit,
 ) {
-    val permissionCallbacks: PermissionCallbacks =
-        PermissionCallbacks().apply { requestBlock() }
+    val permissionCallbacks: MultiplePermissionCallbacks =
+        MultiplePermissionCallbacks().apply { requestBlock() }
     _requestPermissions(
         permissionCallbacks,
         permissions.toList()
-    )
+    ).launchMultiplePermissionRequest()
 }
 
-fun ComponentActivity._requestPermissions(
-    callback: PermissionCallbacks,
+@RestrictTo(LIBRARY_GROUP_PREFIX)
+@MainThread
+ fun ComponentActivity._requestPermissions(
+    callback: MultiplePermissionCallbacks,
     permissions: List<String>,
-) {
-    val notGranted = permissions.filter { !checkPermission(it) }
-    when {
-        notGranted.isEmpty() -> {
-            onPermissionResult(PermissionResult.PermissionGranted(), callback)
-        }
-
-        else -> {
-            requestMutableMultiplePermissionsState(permissions.toList()) { permissionsState ->
-                val noGranted = permissionsState.filter { !it.value }
-                when {
-                    noGranted.isEmpty() ->
-                        onPermissionResult(PermissionResult.PermissionGranted(), callback)
-
-                    else -> {
-                        onPermissionResult(
-                            PermissionResult.PermissionDenied(noGranted.keys.toList()),
-                            callback
-                        )
-                    }
-                }
-            }
-        }
+): MultiplePermissionsState {
+    return requestMutableMultiplePermissionsState(permissions.toList()) { permissionsState ->
+        onPermissionResult(permissionsState, callback)
     }
 }
 
@@ -111,7 +109,7 @@ fun ComponentActivity._requestPermissions(
  */
 internal fun ComponentActivity.requestMutablePermissionState(
     permission: String,
-    onPermissionResult: (Boolean) -> Unit = {}
+    onPermissionResult: (MutablePermissionState) -> Unit = {}
 ): MutablePermissionState {
     val permissionState = MutablePermissionState(permission, this, this)
 
@@ -121,12 +119,11 @@ internal fun ComponentActivity.requestMutablePermissionState(
     // Remember RequestPermission launcher and assign it to permissionState
     val launcher = launcherForActivityResult(ActivityResultContracts.RequestPermission()) {
         permissionState.refreshPermissionStatus()
-        onPermissionResult(it)
+        onPermissionResult(permissionState)
         permissionState.launcher?.unregister()
         permissionState.launcher = null
     }
     permissionState.launcher = launcher
-    launcher.launch(permission)
     return permissionState
 }
 
@@ -154,7 +151,7 @@ internal fun ComponentActivity.PermissionLifecycleCheckerEffect(
 
 internal fun ComponentActivity.requestMutableMultiplePermissionsState(
     permissions: List<String>,
-    onPermissionsResult: (Map<String, Boolean>) -> Unit = {}
+    onPermissionsResult: (MultiplePermissionsState) -> Unit = {}
 ): MultiplePermissionsState {
     val mutablePermissions = rememberMutablePermissionsState(permissions)
     PermissionsLifecycleCheckerEffect(mutablePermissions)
@@ -165,12 +162,11 @@ internal fun ComponentActivity.requestMutableMultiplePermissionsState(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissionsResult ->
         multiplePermissionsState.updatePermissionsStatus(permissionsResult)
-        onPermissionsResult(permissionsResult)
+        onPermissionsResult(multiplePermissionsState)
         multiplePermissionsState.launcher?.unregister()
         multiplePermissionsState.launcher = null
     }
     multiplePermissionsState.launcher = launcher
-    launcher.launch(permissions.toTypedArray())
     return multiplePermissionsState
 }
 
