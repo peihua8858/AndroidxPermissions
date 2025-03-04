@@ -48,8 +48,8 @@ android {
 
 dependencies {
     implementation(files("libs/library-release.aar"))
-    implementation(project(":compose"))
-    implementation(project(":core"))
+//    implementation(project(":compose"))
+//    implementation(project(":core"))
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.material3)
@@ -64,4 +64,7 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     implementation ("com.google.accompanist:accompanist-permissions:0.37.2")
+    implementation ("com.github.peihua8858.AndroidxPermissions:permissions-core:1.0.2")
+    implementation ("com.github.peihua8858.AndroidxPermissions:permissions-fragment:1.0.2")
+    implementation ("com.github.peihua8858.AndroidxPermissions:permissions-compose:1.0.2")
 }

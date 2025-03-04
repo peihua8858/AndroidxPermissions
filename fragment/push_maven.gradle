@@ -3,8 +3,8 @@ apply plugin: 'maven-publish'
 def isRelease = true
 def mavenUrl = "https://jitpack.io"
 def mavenUrlSnapshot = "https://jitpack.io/"
-def mavenUserName = "l1111"
-def mavenPwd = "l123456"
+def mavenUserName = rootProject.ext.jitpackAuth
+def mavenPwd = ""
 def localFile = "${rootDir}/plugin_libs"
 def sdkVersionName = isRelease ? version : version + "-SNAPSHOT"
 println "group: ${group}"
