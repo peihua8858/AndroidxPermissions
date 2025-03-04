@@ -1,5 +1,5 @@
 #  Androidx permissions
-kotlinCommonUtils是一个Kotlin工具库，可以简化Android开发，使代码更加简洁和可读。
+AndroidxPermissions是一个Kotlin权限工具库，方便Android开发请求权限。
 
 [English](README_EN.md)
 

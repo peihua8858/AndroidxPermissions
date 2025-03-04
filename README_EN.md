@@ -1,6 +1,5 @@
 # Androidx permissions
-AndroidxPermissions is a Kotlin tool library that simplifies Android development, making the code more concise and readable.
-
+AndroidxPermissions is a Kotlin permission tool library that facilitates Android development to request permissions.
 [简体中文🇨🇳](README.md)
 
 [![Jitpack](https://jitpack.io/v/peihua8858/AndroidxPermissions.svg)](https://github.com/peihua8858)
