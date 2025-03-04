@@ -12,14 +12,13 @@ kotlinCommonUtils是一个Kotlin工具库，可以简化Android开发，使代�
 -[最新版本](https://github.com/peihua8858/AndroidxPermissions/releases/tag/1.0.0)<br>
 -[如何引用](#如何引用)<br>
 -[进阶使用](#进阶使用)<br>
--[权限](#权限)<br>
 -[如何提Issues](https://github.com/peihua8858/AndroidxPermissions/wiki/%E5%A6%82%E4%BD%95%E6%8F%90Issues%3F)<br>
 -[License](#License)<br>
 
 
 ## 如何引用
 * 把 `maven { url 'https://jitpack.io' }` 加入到 repositories 中
-* 添加如下依赖，末尾的「latestVersion」指的是kotlinCommonUtils [![Download](https://jitpack.io/v/peihua8858/AndroidxPermissions.svg)](https://jitpack.io/#peihua8858/AndroidxPermissions) 里的版本名称，请自行替换。
+* 添加如下依赖，末尾的「latestVersion」指的是AndroidxPermissions [![Download](https://jitpack.io/v/peihua8858/AndroidxPermissions.svg)](https://jitpack.io/#peihua8858/AndroidxPermissions) 里的版本名称，请自行替换。
 使用 Gradle
 
 ```sh
@@ -29,223 +28,35 @@ repositories {
 }
 
 dependencies {
-  // KotlinCommonUtils
-  implementation 'com.github.peihua8858:kotlinCommonUtils:${latestVersion}'
+  // AndroidxPermissions
+  implementation 'com.github.peihua8858:permissions-core:${latestVersion}'
+  implementation 'com.github.peihua8858:permissions-fragment:${latestVersion}'
+  implementation 'com.github.peihua8858:permissions-compose:${latestVersion}'
 }
 ```
-
-或者 Maven:
-
-```xml
-<dependency>
-  <groupId>com.github.peihua8858</groupId>
-  <artifactId>kotlinCommonUtils</artifactId>
-  <version>${latestVersion}</version>
-</dependency>
-```
-## 权限
-```xml
-<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-<uses-permission android:name="android.permission.READ_PHONE_STATE" />
-```
-
 ## 进阶使用
 
 一个简单的用例如下所示：
 
-1、判断字符串是否为空
-
+1、权限 DSL用法
 ```kotlin
-import com.fz.common.text.isNonEmpty
-val spu:String? =null 
-var result:String=""
-if (spu.isNonEmpty()) {
-    result = spu
-}
-```
-
-2、判断List、Map或者Array 是否为空
-```kotlin
-//List
-import com.fz.common.collections.isNonEmpty
-//Array 
-import com.fz.common.array.isNonEmpty
-
-val list:List<String>? =null 
-var result:List<String> = arrayListOf()
-if (list.isNonEmpty()) {
-    result = list
-}
-
-//Map 
-import com.fz.common.map.isNonEmpty
-val map:Map<String,String>? =null 
-var result:Map<String,String> = hashMapOf()
-if (map.isNonEmpty()) {
-    result = map
-}
-```
-3、权限 DSL用法
-< a herf='https://github.com/peihua8858/AndroidxPermissions.git'> 废弃，请使用 Androidx permissions</a>
-```kotlin
-import com.fz.common.permissions.requestPermissionsDsl
-@Deprecated("Use androidx permissions < a herf='https://github.com/peihua8858/AndroidxPermissions.git'>github</a>")
+import com.peihua8858.permissions.core.requestPermission
 requestPermissionsDsl(Manifest.permission.POST_NOTIFICATIONS) {
     onDenied {
          showToast("Denied")
     }
-    onNeverAskAgain {
-         showToast("Never ask again")
+    onShowRationale {
+         showToast("Denied,show rationale")
     }
     onGranted {
         showToast("Granted")
     }
 }
 ```
-4、使用ContentProvider保存图片文件到sd卡
-```kotlin
-import com.fz.common.utils.saveImageToGallery
-val imageFile = File("D://images/5.jpg")
-context.saveImageToGallery(imageFile, imageFile.name)
-```
-5、ViewModel协程用法
-```kotlin
-import com.fz.common.model.ViewModelState
-class BottomTopMatchViewModel : ViewModel() {
-    val matchTypeState: MutableLiveData<ViewModelState<SwimmingType>> =
-    MutableLiveData()
-    fun requestGetMatchType(goodsId: String) {
-        request(matchTypeState) {
-            val param = RequestParam()
-            param.put("goods_id", goodsId)
-            val httpResponse = ApiManager.productApi().requestGetMatchType(param.createRequestBody())
-            if (httpResponse.isSuccessFull()) {
-                val result = httpResponse.result
-                if (result != null) {
-                    return@request result
-                }
-            }
-            throw NullPointerException("no data.")
-          }
-      }
-      
- val matchTypeState2: MutableLiveData<ResultData<SwimmingType>> =
-    MutableLiveData()
-    fun requestGetMatchType(goodsId: String) {
-        request(matchTypeState2) {
-            val param = RequestParam()
-            param.put("goods_id", goodsId)
-            val httpResponse = ApiManager.productApi().requestGetMatchType(param.createRequestBody())
-            if (httpResponse.isSuccessFull()) {
-                val result = httpResponse.result
-                if (result != null) {
-                    return@request result
-                }
-            }
-            throw NullPointerException("no data found.")
-       }
-    }
-}
-//Activity 监听
-viewModel.matchTypeState.observe(this) {
-    if (it.isStarting()) {
-        showLoadingView()
-    } else if (it.isSuccess()) {
-        val swimmingType = it.data
-       //....
-    } else if (it.isError()) {
-        showErrorView()
-    }
-}
-
-//Activity 监听
-viewModel.matchTypeState2.observe(this) {
-    if (it.isStarting()) {
-        showLoadingView()
-    } else if (it.isSuccess()) {
-        val swimmingType = it.data
-       //....
-    } else if (it.isError()) {
-        showErrorView()
-    }
-}
-```
-6、网络状态
-```kotlin
-//kotlin  or java
-import com.fz.common.network.NetworkUtil
-if (NetworkUtil.isConnected(context, true)) {
-     showToast("Internet connection.")
-}else{
-    showToast("Disconnected from the network. ")
-}
-```
-7、视图动画
-```kotlin
-import com.fz.common.view.utils.animateIn
-import com.fz.common.view.utils.animateOut
-//进入动画
-View.animateIn(true){
-    onAnimationStart{
-            //todo
-    }
-    onAnimationEnd{
-          //todo
-    }
-    onAnimationCancel{
-           //todo
-    }
-    onAnimationPause{
-           //todo
-    }
-}
-//退出动画
-View.animateOut(true){
-    onAnimationStart{
-           //todo
-    }
-    onAnimationEnd{
-          //todo
-    }
-    onAnimationCancel{
-            //todo
-    }
-    onAnimationPause{
-           //todo
-    }
-}
-//其他动画如：透明度动画（View.animateAlpha()）、宽度展开折叠(View.animationWidth)等
-```
-8、Activity or Fragment 协程用法
-```kotlin
-import com.fz.common.utils.apiWithAsyncCreated
-Activity/Fragment.apiWithAsyncCreated<T>{
-    onStart{
-       //网络请求前
-       //todo
-    }
-    onRequest{
-        //发起网络请求
-        //todo  
-    }
-    onResponse{
-        // 网络请求成功
-        //todo   
-    }
-    onError{
-        //网络请求失败
-       //todo    
-    }
-    onComplete{
-        //网络请求完成
-        //todo    
-    }
-}
-```
 ## License
 
 ```sh
-Copyright 2023 peihua
+Copyright 2025 peihua
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
