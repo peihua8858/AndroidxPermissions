@@ -25,6 +25,7 @@ AndroidxPermissions是一个Kotlin权限工具库，方便Android开发请求权
 repositories {
   google()
   mavenCentral()
+  maven { url 'https://jitpack.io' }
 }
 
 dependencies {

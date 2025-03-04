@@ -23,6 +23,7 @@ Use Gradle
 repositories {
   google()
   mavenCentral()
+  maven { url 'https://jitpack.io' }
 }
 
 dependencies {
