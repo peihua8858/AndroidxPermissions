@@ -37,4 +37,5 @@ dependencies {
 }
 setGroup(providers.gradleProperty("premission.group").get())
 setVersion(providers.gradleProperty("premission.version").get())
+
 apply(from = "push_maven.gradle")

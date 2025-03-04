@@ -48,6 +48,7 @@ android {
 
 dependencies {
     implementation(files("libs/library-release.aar"))
+    implementation(project(":compose"))
     implementation(project(":core"))
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))

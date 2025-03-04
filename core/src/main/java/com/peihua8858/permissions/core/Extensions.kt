@@ -6,37 +6,72 @@ import android.content.pm.PackageManager
 import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.MainThread
-import androidx.annotation.RestrictTo
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
-import androidx.annotation.RestrictTo.Scope.LIBRARY_GROUP_PREFIX
 
 @MainThread
-inline fun ComponentActivity.requestPermission(
+ fun ComponentActivity.requestPermission(
     permission: String,
     requestBlock: PermissionCallbacks.() -> Unit,
 ) {
     val permissionCallbacks: PermissionCallbacks =
         PermissionCallbacks().apply { requestBlock() }
-    _requestPermission(
+   _requestPermission(
         permissionCallbacks,
         permission
     ).launchPermissionRequest()
 }
-@RestrictTo(LIBRARY_GROUP_PREFIX)
+
 @MainThread
- fun ComponentActivity._requestPermission(
+internal fun ComponentActivity._requestPermission(
     callback: PermissionCallbacks,
     permission: String,
-):MutablePermissionState {
-   return requestMutablePermissionState(permission) {
+): MutablePermissionState {
+    return requestMutablePermissionState(permission) {
         onPermissionResult(it, callback)
     }
 }
+
+
+@MainThread
+fun ComponentActivity.requestPermissions(
+    vararg permissions: String,
+    requestBlock: MultiplePermissionCallbacks.() -> Unit,
+) {
+    val permissionCallbacks: MultiplePermissionCallbacks =
+        MultiplePermissionCallbacks().apply { requestBlock() }
+    _requestPermissions(
+        permissionCallbacks,
+        permissions.toList()
+    ).launchPermissionRequest()
+}
+@MainThread
+fun ComponentActivity.requestPermissions(
+    permissions: List<String>,
+    requestBlock: MultiplePermissionCallbacks.() -> Unit,
+) {
+    val permissionCallbacks: MultiplePermissionCallbacks =
+        MultiplePermissionCallbacks().apply { requestBlock() }
+    _requestPermissions(
+        permissionCallbacks,
+        permissions
+    ).launchPermissionRequest()
+}
+
+@MainThread
+internal fun ComponentActivity._requestPermissions(
+    callback: MultiplePermissionCallbacks,
+    permissions: List<String>,
+): MultiplePermissionsState {
+    return requestMutableMultiplePermissionsState(permissions.toList()) { permissionsState ->
+        onPermissionResult(permissionsState, callback)
+    }
+}
+
 
 internal fun onPermissionResult(permissionsState: PermissionState, callback: PermissionCallbacks) {
     val permissionStatus = permissionsState.status
@@ -72,31 +107,6 @@ internal fun onPermissionResult(
     }
 }
 
-@MainThread
-fun ComponentActivity.requestPermissions(
-    vararg permissions: String,
-    requestBlock: MultiplePermissionCallbacks.() -> Unit,
-) {
-    val permissionCallbacks: MultiplePermissionCallbacks =
-        MultiplePermissionCallbacks().apply { requestBlock() }
-    _requestPermissions(
-        permissionCallbacks,
-        permissions.toList()
-    ).launchMultiplePermissionRequest()
-}
-
-@RestrictTo(LIBRARY_GROUP_PREFIX)
-@MainThread
- fun ComponentActivity._requestPermissions(
-    callback: MultiplePermissionCallbacks,
-    permissions: List<String>,
-): MultiplePermissionsState {
-    return requestMutableMultiplePermissionsState(permissions.toList()) { permissionsState ->
-        onPermissionResult(permissionsState, callback)
-    }
-}
-
-
 /**
  * Creates a [MutablePermissionState] that is remembered across compositions.
  *
@@ -120,8 +130,7 @@ internal fun ComponentActivity.requestMutablePermissionState(
     val launcher = launcherForActivityResult(ActivityResultContracts.RequestPermission()) {
         permissionState.refreshPermissionStatus()
         onPermissionResult(permissionState)
-        permissionState.launcher?.unregister()
-        permissionState.launcher = null
+        permissionState.unregister()
     }
     permissionState.launcher = launcher
     return permissionState
@@ -163,8 +172,7 @@ internal fun ComponentActivity.requestMutableMultiplePermissionsState(
     ) { permissionsResult ->
         multiplePermissionsState.updatePermissionsStatus(permissionsResult)
         onPermissionsResult(multiplePermissionsState)
-        multiplePermissionsState.launcher?.unregister()
-        multiplePermissionsState.launcher = null
+        multiplePermissionsState.unregister()
     }
     multiplePermissionsState.launcher = launcher
     return multiplePermissionsState
@@ -224,7 +232,7 @@ fun Context.checkPermission(permission: String): Boolean {
     ) == PackageManager.PERMISSION_GRANTED
 }
 
-internal fun Activity.shouldShowRationale(permission: String): Boolean {
+fun Activity.shouldShowRationale(permission: String): Boolean {
     return ActivityCompat.shouldShowRequestPermissionRationale(this, permission)
 }
 

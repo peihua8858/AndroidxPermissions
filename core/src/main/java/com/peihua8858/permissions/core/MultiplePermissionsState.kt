@@ -13,7 +13,7 @@ import androidx.activity.result.ActivityResultLauncher
  * @param context to check the status of the [permission].
  * @param activity to check if the user should be presented with a rationale for [permission].
  */
- class MutablePermissionState(
+class MutablePermissionState(
     override val permission: String,
     private val context: Context,
     private val activity: Activity
@@ -28,10 +28,19 @@ import androidx.activity.result.ActivityResultLauncher
         ) ?: throw IllegalStateException("ActivityResultLauncher cannot be null")
     }
 
+    override fun unregister() {
+        launcher?.unregister()
+        launcher = null
+    }
+
     internal var launcher: ActivityResultLauncher<String>? = null
 
-    internal fun refreshPermissionStatus() {
+    override fun refreshPermissionStatus() {
         status = getPermissionStatus()
+    }
+
+    override fun setLauncher(launcher: ActivityResultLauncher<String>) {
+        this.launcher = launcher
     }
 
     private fun getPermissionStatus(): PermissionStatus {
@@ -45,7 +54,7 @@ import androidx.activity.result.ActivityResultLauncher
 }
 
 sealed interface PermissionStatus {
-    object Granted : PermissionStatus
+    data object Granted : PermissionStatus
     data class Denied(
         val shouldShowRationale: Boolean
     ) : PermissionStatus
@@ -75,15 +84,20 @@ internal class MutableMultiplePermissionsState(
         get() = permissions.any { it.status.shouldShowRationale } &&
                 permissions.none { !it.status.isGranted && !it.status.shouldShowRationale }
 
-    override fun launchMultiplePermissionRequest() {
+    override fun launchPermissionRequest() {
         launcher?.launch(
             permissions.map { it.permission }.toTypedArray()
         ) ?: throw IllegalStateException("ActivityResultLauncher cannot be null")
     }
 
+    override fun unregister() {
+        launcher?.unregister()
+        launcher = null
+    }
+
     internal var launcher: ActivityResultLauncher<Array<String>>? = null
 
-    internal fun updatePermissionsStatus(permissionsStatus: Map<String, Boolean>) {
+    override fun updatePermissionsStatus(permissionsStatus: Map<String, Boolean>) {
         // Update all permissions with the result
         for (permission in permissionsStatus.keys) {
             mutablePermissions.firstOrNull { it.permission == permission }?.apply {
@@ -93,40 +107,8 @@ internal class MutableMultiplePermissionsState(
             }
         }
     }
-}
 
-interface MultiplePermissionsState {
-
-    /**
-     * List of all permissions to request.
-     */
-    val permissions: List<PermissionState>
-
-    /**
-     * List of permissions revoked by the user.
-     */
-    val revokedPermissions: List<PermissionState>
-
-    /**
-     * When `true`, the user has granted all [permissions].
-     */
-    val allPermissionsGranted: Boolean
-
-    /**
-     * When `true`, the user should be presented with a rationale.
-     */
-    val shouldShowRationale: Boolean
-
-    /**
-     * Request the [permissions] to the user.
-     *
-     * This should always be triggered from non-composable scope, for example, from a side-effect
-     * or a non-composable callback. Otherwise, this will result in an IllegalStateException.
-     *
-     * This triggers a system dialog that asks the user to grant or revoke the permission.
-     * Note that this dialog might not appear on the screen if the user doesn't want to be asked
-     * again or has denied the permission multiple times.
-     * This behavior varies depending on the Android level API.
-     */
-    fun launchMultiplePermissionRequest(): Unit
+    override fun setLauncher(launcher: ActivityResultLauncher<Array<String>>) {
+        this.launcher = launcher
+    }
 }
