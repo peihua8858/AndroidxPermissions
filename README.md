@@ -29,9 +29,9 @@ repositories {
 
 dependencies {
   // AndroidxPermissions
-  implementation 'com.github.peihua8858:permissions-core:${latestVersion}'
-  implementation 'com.github.peihua8858:permissions-fragment:${latestVersion}'
-  implementation 'com.github.peihua8858:permissions-compose:${latestVersion}'
+  implementation 'com.github.peihua8858.AndroidxPermissions:permissions-core:${latestVersion}'
+  implementation 'com.github.peihua8858.AndroidxPermissions:permissions-fragment:${latestVersion}'
+  implementation 'com.github.peihua8858.AndroidxPermissions:permissions-compose:${latestVersion}'
 }
 ```
 ## 进阶使用
